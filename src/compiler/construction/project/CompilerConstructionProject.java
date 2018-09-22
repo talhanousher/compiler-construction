@@ -18,7 +18,13 @@ public class CompilerConstructionProject {
         // TODO code application logic here
         LexicalAnalyzer LA = new LexicalAnalyzer();
 //        LA.isKeyword("asd");
-        LA.splitWord("void main()\n" + "{{\n" + "Int a = 659,b,c,d;\n" + "while(a<==a!=b&&&c)\n" + "if_else(\n" + "char a = '\\n'+'+'+a++b!\n" + "String *ptr = \"abc++-b*c/=d\"\n" + "return;\n" + "}");
+        LA.splitWord("interface A_B_C::d\n"
+                + "{{ while ( a <<<==b!=d)\n"
+                + "string \"a+b+c--//a==b\\n\\\\\"\n"
+                + "\\* a==b=\"\\\\*/\n"
+                + "Float 3abc.9bb.888.a9bb.9bc++99.8e+55\n"
+                + "struct **ptr = file(\"abc.txt+'\\\\'+'+'+='+\n"
+                + "'return true;");
 //        boolean validateIdentifiers = LA.validateString("\"1aasgvjhgjhv123456789876543213!@###$$$$^$%^%^%$$%%%dlkjas\"");
 //        System.out.println(validateIdentifiers);
 //        System.out.println("");

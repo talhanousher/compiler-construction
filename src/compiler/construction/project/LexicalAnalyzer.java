@@ -68,9 +68,9 @@ public class LexicalAnalyzer {
         this.operator = new ArrayList<>();
         this.operator.add(new WordAndClass("+", "pm"));
         this.operator.add(new WordAndClass("-", "pm"));
-        this.operator.add(new WordAndClass("*", "mdm"));
-        this.operator.add(new WordAndClass("/", "mdm"));
-        this.operator.add(new WordAndClass("%", "mdm"));
+        this.operator.add(new WordAndClass("*", "mm"));
+        this.operator.add(new WordAndClass("/", "divide"));
+        this.operator.add(new WordAndClass("%", "mm"));
         this.operator.add(new WordAndClass("++", "incdec"));
         this.operator.add(new WordAndClass("--", "incdec"));
         this.operator.add(new WordAndClass("!", "not"));
@@ -100,6 +100,7 @@ public class LexicalAnalyzer {
         this.operator.add(new WordAndClass("<", "relational"));
         this.operator.add(new WordAndClass(">=", "relational"));
         this.operator.add(new WordAndClass("<=", "relational"));
+        this.operator.add(new WordAndClass("<<<", "<<<"));
 
         this.separator = new ArrayList<>();
         this.separator.add(new WordAndClass(";", ";"));
@@ -226,12 +227,23 @@ public class LexicalAnalyzer {
                                 words.add(new WordAndLineNumber(temp1, lineNumber));
                                 i++;
                             } else {
-                                if (requiredWord != "") {
-                                    words.add(new WordAndLineNumber(requiredWord, lineNumber));
-                                    requiredWord = "";
+                                if (objectFile.charAt(i + 1) == '/') {
+                                    if (requiredWord != "") {
+                                        words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                        requiredWord = "";
+                                    }
+                                    while (objectFile.charAt(i) != '\n') {
+                                        requiredWord += objectFile.charAt(i);
+                                        i++;
+                                    }
+                                } else {
+                                    if (requiredWord != "") {
+                                        words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                        requiredWord = "";
+                                    }
+                                    String temp1 = Character.toString(objectFile.charAt(i));
+                                    words.add(new WordAndLineNumber(temp1, lineNumber));
                                 }
-                                String temp1 = Character.toString(objectFile.charAt(i));
-                                words.add(new WordAndLineNumber(temp1, lineNumber));
 
                             }
                             break;
@@ -380,13 +392,23 @@ public class LexicalAnalyzer {
                                         words.add(new WordAndLineNumber(temp1, lineNumber));
                                         i += 2;
                                     } else {
-                                        if (requiredWord != "") {
-                                            words.add(new WordAndLineNumber(requiredWord, lineNumber));
-                                            requiredWord = "";
+                                        if (objectFile.charAt(i + 2) == '<') {
+                                            if (requiredWord != "") {
+                                                words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                                requiredWord = "";
+                                            }
+                                            String temp1 = Character.toString(objectFile.charAt(i)) + Character.toString(objectFile.charAt(i + 1)) + Character.toString(objectFile.charAt(i + 2));
+                                            words.add(new WordAndLineNumber(temp1, lineNumber));
+                                            i += 2;
+                                        } else {
+                                            if (requiredWord != "") {
+                                                words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                                requiredWord = "";
+                                            }
+                                            String temp1 = Character.toString(objectFile.charAt(i)) + Character.toString(objectFile.charAt(i + 1));
+                                            words.add(new WordAndLineNumber(temp1, lineNumber));
+                                            i += 1;
                                         }
-                                        String temp1 = Character.toString(objectFile.charAt(i)) + Character.toString(objectFile.charAt(i + 1));
-                                        words.add(new WordAndLineNumber(temp1, lineNumber));
-                                        i += 1;
                                     }
                                 } else {
                                     if (requiredWord != "") {
@@ -446,7 +468,7 @@ public class LexicalAnalyzer {
                     if (objectFile.charAt(i) == '\"') {
                         String temp1 = "\"";
                         while (true) {
-                            if (objectFile.charAt(i + 1) == '\"') {
+                            if (objectFile.charAt(i + 1) == '\"' && objectFile.charAt(i) != '\\') {
                                 temp1 += "\"";
                                 words.add(new WordAndLineNumber(temp1, lineNumber));
                                 i++;
@@ -471,36 +493,13 @@ public class LexicalAnalyzer {
                     if (objectFile.charAt(i) == '\'') {
                         String temp1 = "\'";
                         if (objectFile.charAt(i + 1) == '\\') {
-                            temp1 += "\\" + objectFile.charAt(i + 2);
-                            i += 2;
-                            if (objectFile.charAt(i + 1) == '\'') {
-                                temp1 += "\'";
-                                i++;
-                                words.add(new WordAndLineNumber(temp1, lineNumber));
-                            } else {
-                                words.add(new WordAndLineNumber(temp1, lineNumber));
-                            }
+                            temp1 += "\\" + objectFile.charAt(i + 2) + objectFile.charAt(i + 3);
+                            i += 3;
+                            words.add(new WordAndLineNumber(temp1, lineNumber));
                         } else {
-                            if (this.checkCharacter(objectFile.charAt(i + 1)) == "isSeparator" || objectFile.charAt(i + 1) == '\'') {
-                                if (requiredWord != "") {
-                                    words.add(new WordAndLineNumber(requiredWord, lineNumber));
-                                    requiredWord = "";
-                                }
-                                if (temp1 != "") {
-                                    words.add(new WordAndLineNumber(temp1, lineNumber));
-                                }
-
-                            } else {
-                                temp1 += objectFile.charAt(i + 1);
-                                i++;
-                                if (objectFile.charAt(i + 1) == '\'') {
-                                    temp1 += "\'";
-                                    i += 1;
-                                    words.add(new WordAndLineNumber(temp1, lineNumber));
-                                } else {
-                                    words.add(new WordAndLineNumber(temp1, lineNumber));
-                                }
-                            }
+                            temp1 += Character.toString(objectFile.charAt(i + 1)) + Character.toString(objectFile.charAt(i + 2));
+                            i += 2;
+                            words.add(new WordAndLineNumber(temp1, lineNumber));
                         }
                         break;
                     }
@@ -550,7 +549,7 @@ public class LexicalAnalyzer {
     }
 
     String checkCharacter(char ch) {
-        if (ch == ' ' || ch == '{' || ch == '}' || ch == '(' || ch == ')' || ch == '\n' || ch == ';' || ch == ',') {
+        if (ch == ' ' || ch == '{' || ch == ':' || ch == '}' || ch == '(' || ch == ')' || ch == '\n' || ch == ';' || ch == ',') {
             return "isSeparator";
         }
         if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '&' || ch == '|' || ch == '^' || ch == '=' || ch == '<' || ch == '>' || ch == '~' || ch == '!') {
@@ -611,7 +610,7 @@ public class LexicalAnalyzer {
     }
 
     boolean validateCharacter(String temp) {
-        return temp.matches("'([A-Za-z0-9])'|'(\\\\[rbtn0])'");
+        return temp.matches("'(\\\\[\\\\'rbtn0]|[^\\\\'])'");
     }
 
     boolean validateString(String temp) {
@@ -627,7 +626,7 @@ public class LexicalAnalyzer {
         return true;
     }
 
-    void generateToken(ArrayList<WordAndLineNumber> list) {
+    ArrayList<Token> generateToken(ArrayList<WordAndLineNumber> list) {
         ArrayList<Token> tokens = new ArrayList<>();
 //        System.out.println(list);
         for (int i = 0; i < list.size(); i++) {
@@ -759,15 +758,18 @@ public class LexicalAnalyzer {
                     }
             }
         }
-        System.out.println("Class Part\tValuePart\tLine Number");
+//        System.out.println("Class Part\tValuePart\tLine Number");
         for (int i = 0; i < tokens.size(); i++) {
+            System.out.print("( ");
             System.out.print(tokens.get(i).classPart);
-            System.out.print("\t\t");
+            System.out.print(" , ");
             System.out.print(tokens.get(i).valuePart);
-            System.out.print("\t\t");
+            System.out.print(" , ");
             System.out.print(tokens.get(i).lineNumber);
+            System.out.print(" )");
             System.out.println("");
         }
+        return tokens;
     }
 
 }
