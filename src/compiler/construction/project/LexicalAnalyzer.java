@@ -170,12 +170,24 @@ public class LexicalAnalyzer {
                                 words.add(new WordAndLineNumber(temp1, lineNumber));
                                 i++;
                             } else {
-                                if (requiredWord != "") {
-                                    words.add(new WordAndLineNumber(requiredWord, lineNumber));
-                                    requiredWord = "";
+                                if (Character.isDigit(objectFile.charAt(i + 1))) {
+                                    String temp1 = "+";
+                                    while (this.checkCharacter(objectFile.charAt(i + 1)) != "isOperator" && this.checkCharacter(objectFile.charAt(i + 1)) != "isSeparator") {
+                                        temp1 += objectFile.charAt(i + 1);
+                                        i++;
+                                    }
+                                    if (temp1 != "") {
+                                        words.add(new WordAndLineNumber(temp1, lineNumber));
+                                        temp1 = "";
+                                    }
+                                } else {
+                                    if (requiredWord != "") {
+                                        words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                        requiredWord = "";
+                                    }
+                                    String temp1 = Character.toString(objectFile.charAt(i));
+                                    words.add(new WordAndLineNumber(temp1, lineNumber));
                                 }
-                                String temp1 = Character.toString(objectFile.charAt(i));
-                                words.add(new WordAndLineNumber(temp1, lineNumber));
 
                             }
                             break;
@@ -233,7 +245,7 @@ public class LexicalAnalyzer {
                                         requiredWord = "";
                                     }
                                     while (objectFile.charAt(i) != '\n') {
-                                        requiredWord += objectFile.charAt(i);
+//                                        requiredWord += objectFile.charAt(i);
                                         i++;
                                     }
                                 } else {
@@ -467,22 +479,25 @@ public class LexicalAnalyzer {
                     }
                     if (objectFile.charAt(i) == '\"') {
                         String temp1 = "\"";
-                        while (true) {
-                            if (objectFile.charAt(i + 1) == '\"' && objectFile.charAt(i) != '\\') {
+                        i++;
+                        while (i < objectFile.length() - 1) {
+                            if (objectFile.charAt(i) == '\"' && objectFile.charAt(i - 1) != '\\') {
                                 temp1 += "\"";
                                 words.add(new WordAndLineNumber(temp1, lineNumber));
+                                temp1 = "";
                                 i++;
                                 break;
                             } else {
-                                if (this.checkCharacter(objectFile.charAt(i + 1)) == "isSeparator") {
-                                    words.add(new WordAndLineNumber(temp1, lineNumber));
-                                    i++;
-                                    break;
-                                }
-                                temp1 += objectFile.charAt(i + 1);
+                                temp1 += objectFile.charAt(i);
                                 i++;
+
                             }
                         }
+                        if (temp1 != "") {
+                            words.add(new WordAndLineNumber(temp1, lineNumber));
+                            temp1 = "";
+                        }
+
                     }
                     break;
                 case "isChar":
@@ -497,44 +512,51 @@ public class LexicalAnalyzer {
                             i += 3;
                             words.add(new WordAndLineNumber(temp1, lineNumber));
                         } else {
-                            temp1 += Character.toString(objectFile.charAt(i + 1)) + Character.toString(objectFile.charAt(i + 2));
-                            i += 2;
+                            try {
+                                temp1 += Character.toString(objectFile.charAt(i + 1)) + Character.toString(objectFile.charAt(i + 2));
+                                i += 2;
+                            } catch (Exception e) {
+                                temp1 += Character.toString(objectFile.charAt(i + 1));
+                                i++;
+                            }
                             words.add(new WordAndLineNumber(temp1, lineNumber));
                         }
                         break;
                     }
                 case "isDot":
-                    if (this.isNumeric(requiredWord)) {
-                        requiredWord += ".";
-                        while (true) {
-                            if (Character.isDigit(objectFile.charAt(i + 1))) {
-                                requiredWord += objectFile.charAt(i + 1);
-                                i++;
-                            } else {
-                                break;
-                            }
-                        }
-                        if (requiredWord != "") {
-                            words.add(new WordAndLineNumber(requiredWord, lineNumber));
-                            requiredWord = "";
-                        }
+                    String temp1 = "";
+                    while (this.checkCharacter(objectFile.charAt(i + 1)) != "isOperator" && this.checkCharacter(objectFile.charAt(i + 1)) != "isSeparator") {
+                        temp1 += objectFile.charAt(i + 1);
+                        i++;
+                    }
+                    if (this.isNumeric(requiredWord) && this.isNumeric(temp1)) {
+                        words.add(new WordAndLineNumber(requiredWord + "." + temp1, lineNumber));
+                        requiredWord = "";
+                        temp1 = "";
                     } else {
-                        if (requiredWord != "") {
+                        if (!this.isNumeric(requiredWord) && this.isNumeric(temp1)) {
                             words.add(new WordAndLineNumber(requiredWord, lineNumber));
                             requiredWord = "";
-                        }
-                        if (Character.isDigit(objectFile.charAt(i + 1))) {
-                            requiredWord = ".";
-                            while (Character.isDigit(objectFile.charAt(i + 1))) {
-                                requiredWord += objectFile.charAt(i + 1);
-                                i++;
-                            }
-                            words.add(new WordAndLineNumber(requiredWord, lineNumber));
-                            requiredWord = "";
+                            words.add(new WordAndLineNumber("." + temp1, lineNumber));
+                            temp1 = "";
                         } else {
-                            words.add(new WordAndLineNumber(".", lineNumber));
+                            if (this.isNumeric(requiredWord) && !this.isNumeric(temp1)) {
+                                words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                requiredWord = "";
+                                words.add(new WordAndLineNumber(".", lineNumber));
+                                words.add(new WordAndLineNumber(temp1, lineNumber));
+                            } else {
+
+                                if (!this.isNumeric(requiredWord) && !this.isNumeric(temp1)) {
+                                    words.add(new WordAndLineNumber(requiredWord, lineNumber));
+                                    requiredWord = "";
+                                    words.add(new WordAndLineNumber(".", lineNumber));
+                                    words.add(new WordAndLineNumber(temp1, lineNumber));
+                                }
+                            }
                         }
                     }
+                    break;
             }
 
         }
@@ -614,7 +636,7 @@ public class LexicalAnalyzer {
     }
 
     boolean validateString(String temp) {
-        return temp.matches("(\\\").*[^\\\"].*(\\\")");
+        return temp.matches("\"(\\[\\'rbtn0]|[^\\\"])*\"");
     }
 
     boolean isNumeric(String str) {
@@ -742,6 +764,11 @@ public class LexicalAnalyzer {
                         tokens.add(new Token("float", temp.word, temp.lineNumber));
                     } else {
                         tokens.add(new Token(".", temp.word, temp.lineNumber));
+                    }
+                    break;
+                case '+':
+                    if (this.validateIntegers(temp.word)) {
+                        tokens.add(new Token("integer", temp.word, temp.lineNumber));
                     }
                     break;
                 default:

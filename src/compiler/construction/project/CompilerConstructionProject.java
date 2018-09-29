@@ -20,14 +20,12 @@ public class CompilerConstructionProject {
 //        LA.isKeyword("asd");
         LA.splitWord("interface A_B_C::d\n"
                 + "{{ while ( a <<<==b!=d)\n"
-                + "string \"a+b+c--//a==b\\n\\\\\"\n"
-                + "\\* a==b=\"\\\\*/\n"
-                + "Float 3abc.9bb.888.a9bb.9bc++99.8e+55\n"
+                + "string \"a+b+c--//a==b\\n\\\\"
+                + "\\* a==b=\"*/\n"
+                + "Float //3abc.9bb.888.a9bb.9bc++99.8e+55\n"
                 + "struct **ptr = file(\"abc.txt+'\\\\'+'+'+='+\n"
                 + "'return true;");
-//        boolean validateIdentifiers = LA.validateString("\"1aasgvjhgjhv123456789876543213!@###$$$$^$%^%^%$$%%%dlkjas\"");
-//        System.out.println(validateIdentifiers);
-//        System.out.println("");
+//        LA.splitWord("\"a+b+c--//a==b\\n\\\\");
     }
 
 }
