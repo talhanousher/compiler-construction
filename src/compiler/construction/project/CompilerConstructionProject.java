@@ -5,6 +5,13 @@
  */
 package compiler.construction.project;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+
 /**
  *
  * @author Dell
@@ -14,18 +21,29 @@ public class CompilerConstructionProject {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
         LexicalAnalyzer LA = new LexicalAnalyzer();
-//        LA.isKeyword("asd");
-        LA.splitWord("interface A_B_C::d\n"
-                + "{{ while ( a <<<==b!=d)\n"
-                + "string \"a+b+c--//a==b\\n\\\\"
-                + "\\* a==b=\"*/\n"
-                + "Float //3abc.9bb.888.a9bb.9bc++99.8e+55\n"
-                + "struct **ptr = file(\"abc.txt+'\\\\'+'+'+='+\n"
-                + "'return true;");
-//        LA.splitWord("\"a+b+c--//a==b\\n\\\\");
+
+        FileReader fr = new FileReader("C:\\Users\\Dell\\Documents\\NetBeansProjects\\Compiler Construction Project\\src\\input.txt");
+        BufferedReader br = new BufferedReader(fr);
+
+        String str = "", r;
+
+        while ((r = br.readLine()) != null) {
+            str += r;
+            str += "\n";
+
+        }
+
+        System.out.println(str);
+        ArrayList<Token> finalList = LA.splitWord(str);
+
+        SyntaxAnalyzer sa = new SyntaxAnalyzer();
+//        boolean checkOE = sa.MST(finalList);
+//        System.out.println(checkOE);
+        boolean check = sa.syntaxChecker(finalList);
+        System.out.println(check);
     }
 
 }
